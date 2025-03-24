@@ -2,15 +2,31 @@ import streamlit as st
 import tempfile, os, glob, time
 from ultralytics import YOLO
 
+# Inject custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .main {background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    h1 {color: #333333; font-weight: bold;}
+    h2 {color: #333333; margin-top: 20px;}
+    h3 {color: #333333; margin-top: 15px;}
+    .stButton>button {background-color: #007bff; color: white; border-radius: 8px; border: none; padding: 8px 16px; }
+    .stButton>button:hover {background-color: #0056b3; }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 #####################
 # Video Processing  #
 #####################
 def process_video(video_path):
     """
-    Process the video using YOLOv8 and return a dictionary containing:
-      - 'video': path to the processed video (raw output from YOLO)
-      - 'images': list of sample image file paths with detection objects
-    The YOLO model automatically saves the raw processed output in a subfolder of runs/detect.
+    Process a video using YOLOv8 and return a dictionary containing:
+      - 'video': the path to the processed video (raw output from YOLO)
+      - 'images': a list of sample image file paths with detection results.
+      
+    The YOLO model saves the output to a subfolder in "runs/detect".
     """
     model = YOLO("models/best.pt")
     results = model.predict(source=video_path, show=False, save=True)
@@ -42,9 +58,10 @@ def process_video(video_path):
 def process_image(image_path):
     """
     Process a single image using YOLOv8 and return:
-      - processed_image: path to the processed image
-      - detection_info: a dict indicating if a "mask" and/or "helmet" were detected.
-    The YOLO model saves the output image in a subfolder of runs/detect.
+      - processed_image: the path to the processed image.
+      - detection_info: a dictionary containing counts for each of the 10 classes.
+      
+    The YOLO model saves the output image to a subfolder in "runs/detect".
     """
     model = YOLO("models/best.pt")
     results = model.predict(source=image_path, show=False, save=True)
@@ -62,18 +79,20 @@ def process_image(image_path):
         return None, None
     processed_image_path = image_files[0]
     
-    # Prepare detection info by checking YOLO results
-    detection_info = {"mask": False, "helmet": False}
+    # Define target classes (all in lowercase)
+    target_classes = ['hardhat', 'mask', 'no-hardhat', 'no-mask', 'no-safety vest', 
+                      'person', 'safety cone', 'safety vest', 'machinery', 'vehicle']
+    detection_info = {cls: 0 for cls in target_classes}
+    
     if results and len(results) > 0 and results[0].boxes is not None:
         boxes = results[0].boxes
         if boxes.cls is not None:
-            # Convert detected class tensor to a list of class names
-            detected_classes = [results[0].names[int(cls)] for cls in boxes.cls.cpu().numpy()]
-            if "mask" in detected_classes:
-                detection_info["mask"] = True
-            if "helmet" in detected_classes:
-                detection_info["helmet"] = True
-                
+            # Convert each detected class to lowercase and count occurrences
+            detected_classes = [results[0].names[int(cls)].lower() for cls in boxes.cls.cpu().numpy()]
+            for d in detected_classes:
+                if d in detection_info:
+                    detection_info[d] += 1
+                    
     return processed_image_path, detection_info
 
 #####################
@@ -86,7 +105,7 @@ page = st.sidebar.radio("Navigation", ["Detection (Video)", "Image Detection", "
 #####################
 if page == "Detection (Video)":
     st.title("PPE Detection on Construction Sites - Video")
-    st.write("Upload a video file (mp4 or avi) to detect PPE using the YOLO model.")
+    st.write("Upload a video file (MP4 or AVI) to detect PPE using the YOLOv8 model.")
     
     if "processed_data" not in st.session_state:
         st.session_state.processed_data = None
@@ -126,10 +145,10 @@ if page == "Detection (Video)":
             
             st.subheader("Recommendations")
             st.markdown("""
-            - **Lighting & Angle:** Ensure the camera angle and lighting provide a clear view of the personnel.
-            - **Model Calibration:** Adjust the detection confidence threshold if you experience too many false positives/negatives.
-            - **Training Data:** Consider including more varied examples of PPE in different environments to improve detection accuracy.
-            - **Regular Updates:** Update the model periodically with new data to adapt to changing conditions on the site.
+            - **Lighting & Angle:** Ensure that the camera angle and lighting offer a clear view of the personnel.
+            - **Model Calibration:** Adjust the detection confidence threshold if you experience too many false positives or negatives.
+            - **Training Data:** Include varied examples of PPE in different environments to improve detection accuracy.
+            - **Regular Updates:** Periodically update the model with new data to adapt to changing conditions on-site.
             """)
         else:
             st.error("Error: Could not locate the processed video. Please try again.")
@@ -138,8 +157,8 @@ if page == "Detection (Video)":
 # Image Detection   #
 #####################
 elif page == "Image Detection":
-    st.title("🦺 PPE Detection System - Image")
-    st.write("Upload an image file (jpg or png) to detect PPE using the YOLO model.")
+    st.title("PPE Detection System - Image")
+    st.write("Upload an image file (JPG or PNG) to detect PPE using the YOLOv8 model.")
     
     uploaded_image = st.file_uploader("Choose an image file", type=["jpg", "png"])
     
@@ -148,25 +167,34 @@ elif page == "Image Detection":
         img_temp.write(uploaded_image.read())
         img_temp.flush()
         
-        st.markdown("<h4>📸 Uploaded Image:</h4>", unsafe_allow_html=True)
+        st.markdown("<h4>Uploaded Image:</h4>", unsafe_allow_html=True)
         st.image(img_temp.name, use_container_width=True)
         
         with st.spinner("Processing image, please wait..."):
             processed_img, detection_info = process_image(img_temp.name)
         
         if processed_img:
-            st.markdown("<h4>🔍 Detected Results:</h4>", unsafe_allow_html=True)
+            st.markdown("<h4>Detected Results:</h4>", unsafe_allow_html=True)
             st.image(processed_img, use_container_width=True)
             
-            # Check for missing PPE (mask and helmet)
-            missing = []
-            if not detection_info["mask"]:
-                missing.append("mask")
-            if not detection_info["Hardhat"]:
-                missing.append("Hardhat")
-                
-            if missing:
-                st.error("Warning: No " + " and ".join(missing) + " detected!")
+            # Display detection summary (only nonzero values)
+            st.markdown("#### Detection Summary:")
+            for cls, count in detection_info.items():
+                if count > 0:
+                    st.write(f"**{cls.capitalize()}:** {count}")
+            
+            # Trigger alerts for missing PPE based on "no-" classes
+            alerts = []
+            if detection_info["no-hardhat"] > 0:
+                alerts.append(f"Warning: {detection_info['no-hardhat']} person(s) without a hardhat detected!")
+            if detection_info["no-mask"] > 0:
+                alerts.append(f"Warning: {detection_info['no-mask']} person(s) without a mask detected!")
+            if detection_info["no-safety vest"] > 0:
+                alerts.append(f"Warning: {detection_info['no-safety vest']} person(s) without a safety vest detected!")
+            
+            if alerts:
+                for a in alerts:
+                    st.error(a)
             else:
                 st.success("All required PPE detected!")
         else:
@@ -180,22 +208,22 @@ elif page == "Safety Measures Blog":
     st.markdown("""
     ### Construction Site Safety: Key Measures to Protect Your Workforce
     
-    In the dynamic environment of a construction site, safety should always be the top priority. Here are some essential measures:
+    In today's dynamic construction environment, safety is paramount. Here are essential measures to ensure a secure work site:
     
     1. **Personal Protective Equipment (PPE):**  
-       Always ensure that all personnel are equipped with the necessary PPE such as helmets, gloves, high-visibility vests, and protective footwear.
+       Ensure that every worker is equipped with the necessary PPE such as hardhats, masks, gloves, high-visibility vests, and protective footwear.
     
     2. **Site Inspections and Hazard Identification:**  
-       Regularly conduct thorough site inspections to identify potential hazards. Implement corrective measures promptly.
+       Conduct thorough and regular site inspections to promptly identify and address potential hazards.
     
     3. **Training and Awareness:**  
-       Provide regular training sessions on safety practices and emergency procedures. Educate workers about the importance of PPE and how to use it correctly.
+       Provide regular training on safety practices and emergency procedures, emphasizing the correct use of PPE.
     
     4. **Emergency Preparedness:**  
-       Establish clear protocols for emergency situations. Ensure that emergency exits, first aid kits, and communication devices are easily accessible.
+       Establish clear emergency protocols. Make sure that emergency exits, first aid kits, and communication devices are easily accessible.
     
     5. **Regular Maintenance:**  
-       Keep all equipment and machinery in good working order with routine maintenance checks to avoid malfunctions that could lead to accidents.
+       Maintain all equipment and machinery properly with routine checks to prevent malfunctions that could cause accidents.
     
-    By integrating these measures, construction sites can minimize risks and protect workers, ensuring a safer work environment for everyone involved.
+    By integrating these measures, construction sites can significantly reduce risks and protect workers, ensuring a safer work environment for everyone involved.
     """)
