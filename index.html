@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Site Safety Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+        }
+        .btn-upload {
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .btn-upload:hover {
+            background-color: #0056b3;
+        }
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="mb-4">🦺 PPE Detection System</h1>
+    
+    <div class="card p-4">
+        <form action="/" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" class="form-control mb-3" required>
+            <button type="submit" class="btn btn-upload">Upload & Detect</button>
+        </form>
+    </div>
+
+    {% if uploaded_file %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4>📸 Uploaded Image:</h4>
+            <img src="{{ url_for('static', filename='uploads/' + uploaded_file) }}" class="image-preview">
+        </div>
+        <div class="col-md-6">
+            <h4>🔍 Detected Results:</h4>
+            <img src="{{ url_for('static', filename='output/' + output_file) }}" class="image-preview">
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
