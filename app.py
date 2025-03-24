@@ -41,7 +41,9 @@ def process_video(video_path):
 #####################
 def process_image(image_path):
     """
-    Process a single image using YOLOv8 and return the path to the processed image.
+    Process a single image using YOLOv8 and return:
+      - processed_image: path to the processed image
+      - detection_info: a dict indicating if a "mask" and/or "helmet" were detected.
     The YOLO model saves the output image in a subfolder of runs/detect.
     """
     model = YOLO("models/best.pt")
@@ -50,15 +52,29 @@ def process_image(image_path):
     
     output_folders = glob.glob("runs/detect/*")
     if not output_folders:
-        return None
+        return None, None
     latest_folder = max(output_folders, key=os.path.getmtime)
     
     image_files = glob.glob(os.path.join(latest_folder, "*.jpg"))
     if not image_files:
         image_files = glob.glob(os.path.join(latest_folder, "*.png"))
     if not image_files:
-        return None
-    return image_files[0]
+        return None, None
+    processed_image_path = image_files[0]
+    
+    # Prepare detection info by checking YOLO results
+    detection_info = {"mask": False, "helmet": False}
+    if results and len(results) > 0 and results[0].boxes is not None:
+        boxes = results[0].boxes
+        if boxes.cls is not None:
+            # Convert detected class tensor to a list of class names
+            detected_classes = [results[0].names[int(cls)] for cls in boxes.cls.cpu().numpy()]
+            if "mask" in detected_classes:
+                detection_info["mask"] = True
+            if "helmet" in detected_classes:
+                detection_info["helmet"] = True
+                
+    return processed_image_path, detection_info
 
 #####################
 # Sidebar Navigation#
@@ -136,11 +152,23 @@ elif page == "Image Detection":
         st.image(img_temp.name, use_container_width=True)
         
         with st.spinner("Processing image, please wait..."):
-            processed_img = process_image(img_temp.name)
+            processed_img, detection_info = process_image(img_temp.name)
         
         if processed_img:
             st.markdown("<h4>🔍 Detected Results:</h4>", unsafe_allow_html=True)
             st.image(processed_img, use_container_width=True)
+            
+            # Check for missing PPE (mask and helmet)
+            missing = []
+            if not detection_info["mask"]:
+                missing.append("mask")
+            if not detection_info["Hardhat"]:
+                missing.append("Hardhat")
+                
+            if missing:
+                st.error("Warning: No " + " and ".join(missing) + " detected!")
+            else:
+                st.success("All required PPE detected!")
         else:
             st.error("Error: Could not process the image. Please try again.")
 
