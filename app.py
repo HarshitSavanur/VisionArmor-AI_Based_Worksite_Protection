@@ -79,7 +79,7 @@ def process_image(image_path):
         return None, None
     processed_image_path = image_files[0]
     
-    # Define target classes (all in lowercase)
+    # Define target classes from your dataset (all in lowercase)
     target_classes = ['hardhat', 'mask', 'no-hardhat', 'no-mask', 'no-safety vest', 
                       'person', 'safety cone', 'safety vest', 'machinery', 'vehicle']
     detection_info = {cls: 0 for cls in target_classes}
@@ -96,14 +96,85 @@ def process_image(image_path):
     return processed_image_path, detection_info
 
 #####################
-# Sidebar Navigation#
+# Additional Pages  #
 #####################
-page = st.sidebar.radio("Navigation", ["Detection (Video)", "Image Detection", "Safety Measures Blog"])
+def about_page():
+    st.title("About This Project")
+    st.markdown("""
+    **PPE Detection System** is a state-of-the-art solution designed to enhance safety on construction sites by ensuring that all personnel are equipped with the required personal protective equipment (PPE). Built using the YOLOv8 model and Streamlit, this system analyzes images and videos in real time to detect hardhats, masks, safety vests, and more.
+    
+    **Key Components:**
+    - **YOLOv8 Model:** Leverages deep learning for accurate object detection.
+    - **Streamlit Interface:** Provides an interactive web-based dashboard for easy access and visualization.
+    - **Multi-Modal Input:** Supports both video and image inputs for comprehensive analysis.
+    
+    Our goal is to assist construction site managers in maintaining a safe work environment and ensuring compliance with safety regulations.
+    """)
+
+def faq_page():
+    st.title("Frequently Asked Questions")
+    st.markdown("""
+    **Q1: What file formats are supported?**  
+    You can upload videos in MP4 or AVI format, and images in JPG or PNG format.
+    
+    **Q2: How accurate is the detection?**  
+    The system utilizes YOLOv8, which is one of the most accurate object detection models available. However, accuracy may vary based on lighting, angle, and image quality. It is recommended to periodically update and calibrate the model.
+    
+    **Q3: What do the "NO-" classes represent?**  
+    The "NO-" classes (e.g., no-hardhat, no-mask, no-safety vest) indicate that the corresponding PPE item is missing on a detected person.
+    
+    **Q4: Can this system work in real time?**  
+    Yes, with sufficient processing power, the system can process video feeds in near real-time.
+    
+    **Q5: Who can I contact for support?**  
+    For any questions or support, please reach out to our team at [kiranraithal.cd22@rvce.edu.in](mailto:kiranraithal.cd22@rvce.edu.in)
+    """)
+
+def tutorial_page():
+    st.title("Tutorial")
+    st.markdown("""
+    ### How to Use the PPE Detection System
+    
+    **Step 1: Choose Your Input Mode**
+    - **Video Detection:** Upload a video file to analyze multiple frames for PPE compliance.
+    - **Image Detection:** Upload an image to perform a single-shot analysis of PPE usage.
+    
+    **Step 2: Upload Your File**
+    - Click the file uploader button to select a file from your computer.
+    - For video files, ensure they are in MP4 or AVI format.
+    - For images, use JPG or PNG format.
+    
+    **Step 3: Processing and Results**
+    - The system will process the file using the YOLOv8 model.
+    - For videos, you will be able to download the processed output and view sample frames.
+    - For images, a detailed detection summary will be displayed, highlighting missing PPE items with alerts.
+    
+    **Step 4: Review Recommendations**
+    - Each detection page includes recommendations on how to improve image quality, camera positioning, and overall detection accuracy.
+    
+    **Tips:**
+    - Ensure good lighting and a clear angle to maximize detection accuracy.
+    - Use high-quality images and videos for best results.
+    - Regularly update the model with new data to adapt to evolving conditions.
+    """)
 
 #####################
-# Video Detection   #
+# Sidebar Navigation#
 #####################
-if page == "Detection (Video)":
+pages = {
+    "Detection (Video)": "video",
+    "Image Detection": "image",
+    "Safety Measures Blog": "blog",
+    "About": "about",
+    "FAQ": "faq",
+    "Tutorial": "tutorial"
+}
+page_choice = st.sidebar.radio("Navigation", list(pages.keys()))
+
+#####################
+# Main Content      #
+#####################
+if pages[page_choice] == "video":
     st.title("PPE Detection on Construction Sites - Video")
     st.write("Upload a video file (MP4 or AVI) to detect PPE using the YOLOv8 model.")
     
@@ -153,10 +224,7 @@ if page == "Detection (Video)":
         else:
             st.error("Error: Could not locate the processed video. Please try again.")
 
-#####################
-# Image Detection   #
-#####################
-elif page == "Image Detection":
+elif pages[page_choice] == "image":
     st.title("PPE Detection System - Image")
     st.write("Upload an image file (JPG or PNG) to detect PPE using the YOLOv8 model.")
     
@@ -200,10 +268,7 @@ elif page == "Image Detection":
         else:
             st.error("Error: Could not process the image. Please try again.")
 
-##############################
-# Safety Measures Blog Page  #
-##############################
-elif page == "Safety Measures Blog":
+elif pages[page_choice] == "blog":
     st.title("Safety Measures Blog")
     st.markdown("""
     ### Construction Site Safety: Key Measures to Protect Your Workforce
@@ -227,3 +292,12 @@ elif page == "Safety Measures Blog":
     
     By integrating these measures, construction sites can significantly reduce risks and protect workers, ensuring a safer work environment for everyone involved.
     """)
+
+elif pages[page_choice] == "about":
+    about_page()
+
+elif pages[page_choice] == "faq":
+    faq_page()
+
+elif pages[page_choice] == "tutorial":
+    tutorial_page()
