@@ -1,9 +1,3 @@
-import asyncio
-import sys
-
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
 import streamlit as st
 import tempfile, os, glob, time
 from ultralytics import YOLO
@@ -133,7 +127,7 @@ def faq_page():
     Yes, with sufficient processing power, the system can process video feeds in near real-time.
     
     **Q5: Who can I contact for support?**  
-    For any questions or support, please reach out to our team at [kiranraithal.cd22@rvce.edu.in](mailto:kiranraithal.cd22@rvce.edu.in)
+    For any questions or support, please reach out to our team at [kiranraithal2004@gmail.com](mailto:kiranraithal2004@gmail.com)
     """)
 
 def tutorial_page():
@@ -212,13 +206,6 @@ if pages[page_choice] == "video":
                 file_name="processed_video.mp4",
                 mime="video/mp4"
             )
-            
-            if st.session_state.processed_data["images"]:
-                st.subheader("Sample Processed Images")
-                for img_file in st.session_state.processed_data["images"]:
-                    st.image(img_file, caption=os.path.basename(img_file), use_container_width=True)
-            else:
-                st.warning("No processed images found to display.")
             
             st.subheader("Recommendations")
             st.markdown("""
