@@ -1,76 +1,64 @@
-# PPE Detection for Construction Workers
+# VisionArmor: PPE Detection for Construction Workers
 
-## Introduction
-Construction sites are hazardous environments, often resulting in accidents due to the lack of proper safety equipment. This project aims to detect Personal Protective Equipment (PPE) on workers, which can be further utilized for tracking and triggering alarms for safety monitoring.
+## Overview
+VisionArmor is a **Streamlit-based web application** that detects Personal Protective Equipment (**PPE**) in construction workers using a deep learning model trained on a construction site safety dataset.
 
-We utilized the **Construction Site Safety Image Dataset** provided by Roboflow. The dataset consists of **2,801 images** labeled in the YOLOv8 format, split into:
-- **Train**: 2,605 images
-- **Validation**: 114 images
-- **Test**: 82 images
+## Live Deployment
+Access the deployed application here: [VisionArmor](https://visionarmor.streamlit.app/)
 
-### Classes Detected:
-The model is trained to detect the following 10 classes:
-- Hardhat
-- Mask
-- NO-Hardhat
-- NO-Mask
-- NO-Safety Vest
-- Person
-- Safety Cone
-- Safety Vest
-- Machinery
-- Vehicle
+## Dataset
+The model is trained on the **Construction Site Safety Image Dataset** from Kaggle:
+[Dataset Link](https://www.kaggle.com/datasets/snehilsanyal/construction-site-safety-image-dataset-roboflow)
 
----
+## Repository
+GitHub Repository: [VisionArmor](https://github.com/HarshitSavanur/VisionArmor-AI_Based_Worksite_Protection.git)
 
-## Setup
-The model training and inference were conducted on **Kaggle** using a **P100 GPU**. We utilized the **Ultralytics YOLOv8** library for custom object detection.
-
-To install the necessary dependencies, run:
-```bash
-pip install ultralytics streamlit opencv-python
+## Directory Structure
+```
+visionarmor/
+│── dataset/
+│   ├── test/
+│   ├── train/
+│   ├── valid/
+│   ├── README.dataset.txt
+│   ├── README.roboflow.txt
+│
+│── models/
+│   ├── best.pt  # Trained YOLO model for PPE detection
+│
+│── runs/
+│   ├── detect/  # Output detection results
+│
+│── app.py       # Main Streamlit app
+│── index.html   # Frontend UI
+│── packages.txt # Dependencies
+│── README.md    # This file
+│── requirements.txt  # Python dependencies
+│── visionarmor-ppe-prediction.ipynb  # Model training notebook
 ```
 
----
+## Model
+- The model used is **YOLO (You Only Look Once)** for object detection.
+- The best-performing model is stored as **best.pt**.
+- The model detects various PPE like **helmets, vests, and gloves**.
 
----
+## How to Run Locally
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/HarshitSavanur/VisionArmor-AI_Based_Worksite_Protection.git
+   cd visionarmor
+   ```
+2. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. Run the Streamlit app:
+   ```sh
+   streamlit run app.py
+   ```
 
-## Streamlit Application
-We built a **Streamlit** web application for easy usage.
-
-### Features:
-- **Video Processing:** Upload videos and detect PPE in real-time.
-- **Image Processing:** Upload images and identify PPE.
-- **Safety Blog:** Informative content on construction site safety.
-
-To run the application:
-```bash
-streamlit run app.py
-```
-
----
-
-## Model Training & Inference
-### Training:
-```python
-from ultralytics import YOLO
-model = YOLO("yolov8n.pt")
-model.train(data="data/dataset.yaml", epochs=100, imgsz=640)
-```
-
-### Inference:
-```python
-results = model.predict(source="source_files/test_images", save=True)
-```
-
----
-
-## Future Enhancements
-- **Live CCTV Integration**: Real-time PPE monitoring on construction sites.
-- **Automated Alerts**: Trigger alarms when a worker lacks necessary safety gear.
-- **Deployment on Edge Devices**: Optimizing for deployment on low-power edge devices.
-
-
-## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+## Future Improvements
+- Improve model accuracy by using a larger dataset.
+- Deploy the model on more robust cloud services.
+- Add more PPE categories and worker posture detection.
 
