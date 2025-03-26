@@ -30,7 +30,7 @@ visionarmor/
 │   ├── detect/  # Output detection results
 │
 │── app.py       # Main Streamlit app
-│── index.html   # Frontend UI (if applicable)
+│── index.html   # Frontend UI
 │── packages.txt # Dependencies
 │── README.md    # This file
 │── requirements.txt  # Python dependencies
