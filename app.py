@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile, os, glob, time
 from ultralytics import YOLO
-#os
+
 # Inject custom CSS for styling
 st.markdown(
     """
